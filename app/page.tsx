@@ -3,40 +3,30 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import Navbar from "@/components/ui/navbar";
 import ProductCard from "@/components/ui/product-card";
+import { useFeaturedProducts } from "@/hooks/use-featured-products";
 
-// Temporary featured products data
-const featuredProducts = [
-  {
-    id: '1',
-    name: 'Premium Headphones',
-    price: 299.99,
-    image: '/images/products/headphones.jpg',
-    slug: 'premium-headphones'
-  },
-  {
-    id: '2',
-    name: 'Smartwatch Pro',
-    price: 199.99,
-    image: '/images/products/smartwatch.jpg',
-    slug: 'smartwatch-pro'
-  },
-  {
-    id: '3',
-    name: 'Wireless Earbuds',
-    price: 149.99,
-    image: '/images/products/earbuds.jpg',
-    slug: 'wireless-earbuds'
-  },
-  {
-    id: '4',
-    name: 'Laptop Stand',
-    price: 49.99,
-    image: '/images/products/laptop-stand.jpg',
-    slug: 'laptop-stand'
+async function getFeaturedProducts() {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products/featured?limit=4`, {
+    next: { revalidate: 3600 } // Revalidate every hour
+  });
+  
+  if (!res.ok) {
+    throw new Error('Failed to fetch featured products');
   }
-];
+  
+  const data = await res.json();
+  return data.products.map((product: any) => ({
+    id: product._id,
+    name: product.name,
+    price: product.price,
+    image: product.images[0] || '/images/placeholder.jpg',
+    slug: product.slug
+  }));
+}
 
-export default function Home() {
+export default async function Home() {
+  const featuredProducts = await getFeaturedProducts();
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -125,26 +115,24 @@ export default function Home() {
       </section>
 
       {/* Newsletter Section */}
-      <section className="px-4 py-16 sm:px-6 lg:px-8 bg-indigo-600">
-        <div className="max-w-7xl mx-auto">
+      <section className="bg-indigo-600 py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+            <h2 className="text-3xl font-bold tracking-tight text-white">
               Get the Latest Deals
             </h2>
-            <p className="mt-4 text-lg leading-6 text-indigo-200">
+            <p className="mt-4 text-lg text-indigo-100">
               Subscribe to our newsletter and never miss out on exclusive offers.
             </p>
             <div className="mt-8 flex justify-center">
-              <div className="inline-flex rounded-md shadow">
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="px-5 py-3 border-transparent rounded-l-md focus:ring-2 focus:ring-offset-2 focus:ring-offset-indigo-700 focus:ring-white focus:outline-none"
-                />
-                <button className="px-5 py-3 text-base font-medium text-indigo-600 bg-white border border-transparent rounded-r-md hover:bg-indigo-50">
-                  Subscribe
-                </button>
-              </div>
+              <input
+                type="email"
+                placeholder="Enter your email"
+                className="px-5 py-3 w-full max-w-xs rounded-l-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              <button className="bg-indigo-800 text-white px-5 py-3 rounded-r-lg hover:bg-indigo-700">
+                Subscribe
+              </button>
             </div>
           </div>
         </div>

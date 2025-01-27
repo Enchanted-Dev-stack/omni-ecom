@@ -18,13 +18,21 @@ export const userSchema = z.object({
 });
 
 export const productSchema = z.object({
-  name: z.string().min(1),
-  description: z.string().min(1),
-  price: z.number().positive(),
-  images: z.array(z.string().url()),
-  category: z.string().min(1),
-  stock: z.number().int().min(0),
-  slug: z.string().min(1),
+  name: z.string().min(1, 'Product name is required'),
+  description: z.string().min(1, 'Description is required'),
+  price: z.number().positive('Price must be greater than 0').or(z.string().regex(/^\d+(\.\d{1,2})?$/).transform(Number)),
+  images: z.array(z.string()).default([]),
+  category: z.string().min(1, 'Category is required'),
+  stock: z.number().int().min(0, 'Stock cannot be negative').or(z.string().regex(/^\d+$/).transform(Number)),
+  slug: z.string().optional(),
+  status: z.enum(['active', 'draft', 'archived']).default('active'),
+  featured: z.boolean().default(false),
+  variants: z.array(z.object({
+    name: z.string(),
+    price: z.number().positive(),
+    stock: z.number().int().min(0),
+  })).optional(),
+  metadata: z.record(z.string(), z.any()).optional(),
 });
 
 export const cartItemSchema = z.object({
