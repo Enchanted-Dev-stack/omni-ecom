@@ -18,28 +18,52 @@ interface Product {
   _id: string;
   name: string;
   price: number;
-  category: string;
+  category: {
+    _id: string;
+    name: string;
+  };
   stock: number;
   status: string;
   images: string[];
   slug: string;
 }
 
+interface Category {
+  _id: string;
+  name: string;
+}
+
 export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [showDropdown, setShowDropdown] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch('/api/admin/categories');
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch categories');
+      }
+
+      setCategories(data.categories);
+    } catch (err: any) {
+      console.error('Error fetching categories:', err);
+    }
+  };
 
   const fetchProducts = async () => {
     try {
       setLoading(true);
       const queryParams = new URLSearchParams();
       if (searchTerm) queryParams.append('query', searchTerm);
-      if (selectedCategory !== 'All') queryParams.append('category', selectedCategory);
+      if (selectedCategory) queryParams.append('category', selectedCategory);
       if (selectedStatus !== 'All') queryParams.append('status', selectedStatus);
 
       const response = await fetch(`/api/admin/products?${queryParams.toString()}`);
@@ -57,6 +81,10 @@ export default function ProductsPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     fetchProducts();
@@ -127,11 +155,12 @@ export default function ProductsPage() {
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
         >
-          <option value="All">All Categories</option>
-          <option value="Clothing">Clothing</option>
-          <option value="Electronics">Electronics</option>
-          <option value="Books">Books</option>
-          <option value="Home & Garden">Home & Garden</option>
+          <option value="">All Categories</option>
+          {categories.map((category) => (
+            <option key={category._id} value={category._id}>
+              {category.name}
+            </option>
+          ))}
         </select>
         <select
           className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
@@ -207,7 +236,7 @@ export default function ProductsPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{product.category}</div>
+                        <div className="text-sm text-gray-900">{product.category?.name}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">

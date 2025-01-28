@@ -15,6 +15,11 @@ interface ProductFormData {
   images: string[];
 }
 
+interface Category {
+  _id: string;
+  name: string;
+}
+
 const initialFormData: ProductFormData = {
   name: '',
   description: '',
@@ -37,6 +42,30 @@ export default function ProductForm({
   const [formData, setFormData] = useState<ProductFormData>(initialFormData);
   const [dragActive, setDragActive] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      setLoadingCategories(true);
+      try {
+        const response = await fetch('/api/admin/categories');
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to fetch categories');
+        }
+
+        setCategories(data.categories);
+      } catch (err) {
+        console.error('Error fetching categories:', err);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     if (isEditing) {
@@ -194,10 +223,11 @@ export default function ProductForm({
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
               >
                 <option value="">Select a category</option>
-                <option value="Clothing">Clothing</option>
-                <option value="Electronics">Electronics</option>
-                <option value="Books">Books</option>
-                <option value="Home & Garden">Home & Garden</option>
+                {categories.map((category) => (
+                  <option key={category._id} value={category._id}>
+                    {category.name}
+                  </option>
+                ))}
               </select>
             </div>
 
