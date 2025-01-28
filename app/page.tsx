@@ -7,7 +7,7 @@ import { useFeaturedProducts } from "@/hooks/use-featured-products";
 
 async function getFeaturedProducts() {
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products/featured?limit=4`, {
-    next: { revalidate: 3600 } // Revalidate every hour
+    next: { revalidate: 0 } // Revalidate on every request
   });
   
   if (!res.ok) {

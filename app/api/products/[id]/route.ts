@@ -3,12 +3,18 @@ import connectDB from '@/lib/db';
 import Product from '@/models/product';
 import { createResponse, handleError } from '@/lib/api-utils';
 import { productSchema } from '@/lib/validations';
+import { Types } from 'mongoose';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    // Validate if the ID is a valid MongoDB ObjectId
+    if (!Types.ObjectId.isValid(params.id)) {
+      return createResponse({ error: 'Invalid product ID format' }, 400);
+    }
+
     await connectDB();
     const product = await Product.findById(params.id).populate('category', 'name');
     
@@ -27,6 +33,11 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
+    // Validate if the ID is a valid MongoDB ObjectId
+    if (!Types.ObjectId.isValid(params.id)) {
+      return createResponse({ error: 'Invalid product ID format' }, 400);
+    }
+
     await connectDB();
     const body = await request.json();
 
@@ -56,6 +67,11 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    // Validate if the ID is a valid MongoDB ObjectId
+    if (!Types.ObjectId.isValid(params.id)) {
+      return createResponse({ error: 'Invalid product ID format' }, 400);
+    }
+
     await connectDB();
     const product = await Product.findByIdAndUpdate(
       params.id,

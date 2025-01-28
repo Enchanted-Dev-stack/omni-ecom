@@ -15,14 +15,17 @@ interface ProductCardProps {
 export default function ProductCard({ id, name, price, image, slug }: ProductCardProps) {
   return (
     <div className="group relative">
-      <div className="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-lg bg-gray-200">
-        <Image
-          src={image}
-          alt={name}
-          width={500}
-          height={500}
-          className="h-full w-full object-cover object-center group-hover:opacity-75"
-        />
+      <div className="relative w-full pb-[100%]">
+        <div className="absolute inset-0">
+          <Image
+            src={image}
+            alt={name}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            className="rounded-lg object-cover object-center group-hover:opacity-75"
+            priority
+          />
+        </div>
       </div>
       <div className="mt-4 flex justify-between">
         <div>
