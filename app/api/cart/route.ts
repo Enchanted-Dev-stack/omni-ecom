@@ -67,6 +67,45 @@ export async function POST(request: NextRequest) {
   }
 }
 
+export async function PUT(request: NextRequest) {
+  try {
+    await connectDB();
+    const user = await getCurrentUser();
+    if (!user?.id) {
+      return createResponse({ error: 'Unauthorized' }, 401);
+    }
+
+    const { items } = await request.json();
+    if (!Array.isArray(items)) {
+      return createResponse({ error: 'Invalid items format' }, 400);
+    }
+
+    let cart = await Cart.findOne({ user: user.id });
+
+    if (!cart) {
+      cart = await Cart.create({
+        user: user.id,
+        items: items.map(item => ({
+          product: item._id,
+          quantity: item.quantity
+        }))
+      });
+    } else {
+      cart.items = items.map(item => ({
+        product: item._id,
+        quantity: item.quantity
+      }));
+      await cart.save();
+    }
+
+    cart = await cart.populate('items.product', 'name price images');
+
+    return createResponse({ cart });
+  } catch (error) {
+    return handleError(error);
+  }
+}
+
 export async function DELETE(request: NextRequest) {
   try {
     await connectDB();

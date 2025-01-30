@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import Navbar from "@/components/ui/navbar";
 import ProductCard from "@/components/ui/product-card";
+import HeroSlider from "@/components/ui/hero-slider";
 import { useFeaturedProducts } from "@/hooks/use-featured-products";
 
 async function getFeaturedProducts() {
@@ -24,48 +25,31 @@ async function getFeaturedProducts() {
   }));
 }
 
+async function getHeroContent() {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/hero`, {
+    next: { revalidate: 0 }
+  });
+
+  if (!res.ok) {
+    throw new Error('Failed to fetch hero content');
+  }
+
+  const data = await res.json();
+  return data.heroes || []; // Get the hero sections
+}
+
 export default async function Home() {
   const featuredProducts = await getFeaturedProducts();
+  const heroContent = await getHeroContent();
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       
       {/* Hero Section */}
-      <section className="pt-20 pb-12 sm:pb-16 lg:pt-24">
-        <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
-          <div className="grid items-center grid-cols-1 gap-12 lg:grid-cols-2">
-            <div>
-              <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
-                Shop the Latest
-                <span className="text-indigo-600"> Tech Gadgets</span>
-              </h1>
-              <p className="mt-4 text-xl text-gray-500">
-                Discover amazing products with great deals. Free shipping on selected items.
-              </p>
-              <div className="mt-8">
-                <Link
-                  href="/products"
-                  className="inline-flex items-center px-6 py-3 text-base font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700"
-                >
-                  Shop Now
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Link>
-              </div>
-            </div>
-            <div className="relative">
-              <Image
-                src="/images/hero.jpg"
-                alt="Hero image"
-                width={600}
-                height={400}
-                className="rounded-lg shadow-xl"
-                priority
-              />
-            </div>
-          </div>
-        </div>
-      </section>
+      <div className="mt-16 bg-white">
+        <HeroSlider heroes={heroContent} />
+      </div>
 
       {/* Featured Products */}
       <section className="px-4 py-16 sm:px-6 lg:px-8">

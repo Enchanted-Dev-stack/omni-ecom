@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
-import { ShoppingCart, User, Search } from 'lucide-react';
+import { ShoppingCart, User, Search, Menu } from 'lucide-react';
+import CartIcon from './cart-icon';
 
 export default function Navbar() {
   const { data: session } = useSession();
@@ -44,10 +45,7 @@ export default function Navbar() {
           {/* Right Side Icons */}
           <div className="flex items-center space-x-6">
             <Link href="/cart" className="text-gray-700 hover:text-indigo-600 relative">
-              <ShoppingCart className="h-6 w-6" />
-              <span className="absolute -top-2 -right-2 bg-indigo-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
-                0
-              </span>
+              <CartIcon />
             </Link>
             
             {session ? (
@@ -95,6 +93,9 @@ export default function Navbar() {
                 <User className="h-6 w-6" />
               </Link>
             )}
+            <button className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100">
+              <Menu className="h-6 w-6" />
+            </button>
           </div>
         </div>
       </div>

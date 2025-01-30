@@ -1,72 +1,138 @@
-import mongoose, { Schema, model, models } from 'mongoose';
+import mongoose from 'mongoose';
 
-export interface IOrder {
-  user: mongoose.Types.ObjectId;
-  items: {
-    product: mongoose.Types.ObjectId;
-    quantity: number;
-    price: number;
-  }[];
-  totalAmount: number;
-  shippingAddress: {
-    street: string;
-    city: string;
-    state: string;
-    country: string;
-    zipCode: string;
-  };
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  paymentStatus: 'pending' | 'paid' | 'failed';
-  paymentMethod: 'stripe' | 'cod';
-  paymentId?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+// Define payment method enum
+const PaymentMethod = {
+  RAZORPAY: 'razorpay',
+  STRIPE: 'stripe',
+  PAYPAL: 'paypal'
+} as const;
 
-const orderSchema = new Schema<IOrder>(
-  {
-    user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    items: [{
-      product: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
-      quantity: { type: Number, required: true },
-      price: { type: Number, required: true }
-    }],
-    totalAmount: { type: Number, required: true },
-    shippingAddress: {
-      street: { type: String, required: true },
-      city: { type: String, required: true },
-      state: { type: String, required: true },
-      country: { type: String, required: true },
-      zipCode: { type: String, required: true }
-    },
-    status: {
-      type: String,
-      enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'],
-      default: 'pending'
-    },
-    paymentStatus: {
-      type: String,
-      enum: ['pending', 'paid', 'failed'],
-      default: 'pending'
-    },
-    paymentMethod: {
-      type: String,
-      enum: ['stripe', 'cod'],
-      required: true
-    },
-    paymentId: { type: String }
+// Define payment status enum
+const PaymentStatus = {
+  PENDING: 'pending',
+  PAID: 'paid',
+  FAILED: 'failed'
+} as const;
+
+// Define order status enum
+const OrderStatus = {
+  PENDING: 'pending',
+  PROCESSING: 'processing',
+  SHIPPED: 'shipped',
+  DELIVERED: 'delivered',
+  CANCELLED: 'cancelled'
+} as const;
+
+const orderSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
   },
-  {
-    timestamps: true,
-  }
-);
+  items: [{
+    product: {
+      type: String,
+      required: true,
+    },
+    quantity: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+    price: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    name: {
+      type: String,
+      required: true,
+    },
+    image: {
+      type: String,
+      required: true,
+    },
+    slug: {
+      type: String,
+      required: true,
+    },
+  }],
+  shippingAddress: {
+    street: {
+      type: String,
+      required: true,
+    },
+    city: {
+      type: String,
+      required: true,
+    },
+    state: {
+      type: String,
+      required: true,
+    },
+    zipCode: {
+      type: String,
+      required: true,
+    },
+    country: {
+      type: String,
+      required: true,
+    },
+  },
+  totalAmount: {
+    type: Number,
+    required: true,
+    min: 0,
+  },
+  shippingCost: {
+    type: Number,
+    required: true,
+    min: 0,
+  },
+  paymentMethod: {
+    type: String,
+    required: true,
+    enum: Object.values(PaymentMethod),
+    default: PaymentMethod.RAZORPAY,
+  },
+  paymentStatus: {
+    type: String,
+    enum: Object.values(PaymentStatus),
+    default: PaymentStatus.PENDING,
+  },
+  paymentDetails: {
+    razorpay_payment_id: {
+      type: String,
+      required: true,
+    },
+    razorpay_order_id: {
+      type: String,
+      required: true,
+    },
+    razorpay_signature: {
+      type: String,
+      required: true,
+    },
+  },
+  orderStatus: {
+    type: String,
+    enum: Object.values(OrderStatus),
+    default: OrderStatus.PENDING,
+  },
+}, {
+  timestamps: true,
+});
 
 // Create indexes
 orderSchema.index({ user: 1 });
-orderSchema.index({ status: 1 });
+orderSchema.index({ orderStatus: 1 });
 orderSchema.index({ paymentStatus: 1 });
 orderSchema.index({ createdAt: -1 });
 
-const Order = models.Order || model<IOrder>('Order', orderSchema);
+// Delete existing model if it exists
+delete mongoose.models.Order;
+
+// Create and export the model
+const Order = mongoose.model('Order', orderSchema);
 
 export default Order;

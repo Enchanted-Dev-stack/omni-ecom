@@ -85,6 +85,12 @@ categorySchema.pre('findOneAndDelete', async function (next) {
   next();
 });
 
-const Category = mongoose.models.Category || mongoose.model<ICategory>('Category', categorySchema);
+// Delete existing model if it exists
+if (mongoose.models.Category) {
+  delete mongoose.models.Category;
+}
+
+// Create and export the model
+const Category = mongoose.model<ICategory>('Category', categorySchema);
 
 export default Category;

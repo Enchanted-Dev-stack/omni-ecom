@@ -7,7 +7,7 @@ export async function GET() {
   try {
     await connectDB();
 
-    const heroes = await Hero.find()
+    const heroes = await Hero.find({ isActive: true })
       .sort({ order: 1, createdAt: -1 })
       .lean();
 

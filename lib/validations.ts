@@ -40,8 +40,34 @@ export const cartItemSchema = z.object({
   quantity: z.number().int().positive(),
 });
 
+export const shippingDetailsSchema = z.object({
+  fullName: z.string().min(1),
+  email: z.string().email(),
+  phone: z.string().min(1),
+  address: z.string().min(1),
+  city: z.string().min(1),
+  state: z.string().min(1),
+  zipCode: z.string().min(1),
+  country: z.string().min(1),
+});
+
+export const cartItemOrderSchema = z.object({
+  _id: z.string(),
+  name: z.string(),
+  price: z.number().min(0),
+  image: z.string(),
+  slug: z.string(),
+  quantity: z.number().int().positive(),
+});
+
 export const orderSchema = z.object({
-  items: z.array(cartItemSchema),
-  shippingAddress: addressSchema,
-  paymentMethod: z.enum(['stripe', 'cod']),
+  items: z.array(cartItemOrderSchema),
+  shippingDetails: shippingDetailsSchema,
+  totalAmount: z.number().min(0),
+  shippingCost: z.number().min(0),
+  paymentDetails: z.object({
+    razorpay_payment_id: z.string(),
+    razorpay_order_id: z.string(),
+    razorpay_signature: z.string(),
+  }),
 });
